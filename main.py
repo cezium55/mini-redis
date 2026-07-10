@@ -31,7 +31,8 @@ class ProtocolHandler(object):
 
         try:
             # Delegate to the appropriate handler based on the first byte.
-            return self.handlers[first_byte](socket_file)
+            decoded_byte = first_byte.decode('utf-8')
+            return self.handlers[decoded_byte](socket_file)
         except KeyError:
             raise CommandError('bad request')
 
@@ -61,10 +62,6 @@ class ProtocolHandler(object):
         elements = [self.handle_request(socket_file)
                     for _ in range(num_items * 2)]
         return dict(zip(elements[::2], elements[1::2]))
-    
-    def write_response(self, socket_file, data):
-        # Serialize the response data and send it to the client.
-        pass
     
     def write_response(self, socket_file, data):
         # Serialize the response data and send it to the client.
@@ -128,13 +125,7 @@ class Client(object):
         return self.execute('MGET', *keys)
 
     def mset(self, *items):
-        return self.execute('MSET', *items)
-    
-if __name__ == '__main__':
-    from gevent import monkey; monkey.patch_all()
-    Server().run()
-
-
+         return self.execute('MSET', *items)
 
 class Server(object):
     def __init__(self, host='127.0.0.1', port=31337, max_clients=64):
@@ -228,4 +219,3 @@ if __name__ == '__main__':
     print("Starting server on 127.0.0.1:31337...")
     server = Server()
     server.run()
-
